@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\Project;
 use App\Models\Type;
+use App\Models\Technology;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
@@ -50,8 +51,9 @@ class ProjectController extends Controller
     {
         $project = new Project();
         $types = Type::select('label', 'id')->get();
+        $technologies = Technology::select('label', 'id')->get();
 
-        return view('admin.projects.create', compact('project', 'types'));
+        return view('admin.projects.create', compact('project', 'types', 'technologies'));
     }
 
     /**
@@ -64,12 +66,14 @@ class ProjectController extends Controller
             'description' => 'required|string',
             'image' => 'nullable|image',
             'type_id' => 'nullable|exists:types,id',
+            'technologies' => 'nullable|exists:technologies,id',
         ], 
         [
             'title.required' => 'Il progetto deve avere un titolo',
             'description.required' => 'Il progetto deve avere una descrizione',
             'image.image' => 'Il file inserito non è un immagine',
             'type_id.exist' => 'Il tipo non è valido o esistente',
+            'technologies.exists' => 'Tecnologie scelte non esistenti o non valide',
         ]);
 
         $data = $request->all();
@@ -83,15 +87,23 @@ class ProjectController extends Controller
 
         //controllo se arriva un file
         if(Arr::exists($data, 'image')){
-            $extension = $data['image']->extension(); //salvo nella variabile extension l'estensione dell'immagine inserita dall'utente
 
-            $img_url = Storage::putFileAs('project_images', $data['image'], "$project->slug.$extension"); //salvo nella variabile url e in project images l'immagine rinominata con lo slug del progetto
+            //salvo nella variabile extension l'estensione dell'immagine inserita dall'utente
+            $extension = $data['image']->extension(); 
+
+            //salvo nella variabile url e in project images l'immagine rinominata con lo slug del progetto
+            $img_url = Storage::putFileAs('project_images', $data['image'], "$project->slug.$extension"); 
 
             $project->image= $img_url;
         }
         
 
         $project->save();
+
+        if(Arr::exists($data, 'technologies')) 
+        {
+            $project->technologies()->attach($data['technologies']);
+        }
 
         return to_route('admin.projects.show', $project)->with('type', 'success')->with('message', 'Progetto creato con successo');
     }
@@ -111,7 +123,12 @@ class ProjectController extends Controller
     public function edit(Project $project)
     {
         $types = Type::all();
-        return view('admin.projects.edit', compact('project','types'));
+        $technologies = Technology::select('label', 'id')->get();
+
+        //Ricavo le tecnologie utilizzate dal progetto prima di modificarlo cosi da utilizzarle nell'old nel form
+        $previous_technologies = $project->technologies->pluck('id')->toArray();
+
+        return view('admin.projects.edit', compact('project', 'types', 'technologies', 'previous_technologies'));
     }
 
     /**
@@ -124,12 +141,14 @@ class ProjectController extends Controller
             'description' => 'required|string',
             'image' => 'nullable|image',
             'type_id' => 'nullable|exists:types,id',
+            'technologies' => 'nullable|exists:technologies,id',
         ], 
         [
             'title.required' => 'Il progetto deve avere un titolo',
             'description.required' => 'Il progetto deve avere una descrizione',
             'image.image' => 'Il file inserito non è un immagine',
             'type_id.exist' => 'Il tipo non è valido o esistente',
+            'technologies.exists' => 'Tecnologie scelte non esistenti o non valide',
         ]);
     
         $data = $request->all();
@@ -143,15 +162,23 @@ class ProjectController extends Controller
             // controllo se ho un altra immagine già esistente nella cartella e la cancello
             if($project->image) Storage::delete($project->image);
 
-            $extension = $data['image']->extension(); //salvo nella variabile extension l'estensione dell'immagine inserita dall'utente
+            //salvo nella variabile extension l'estensione dell'immagine inserita dall'utente
+            $extension = $data['image']->extension();
 
-            $img_url = Storage::putFileAs('project_images', $data['image'], "{$data['slug']}.$extension"); //salvo nella variabile url e in project images l'immagine rinominata con lo slug del progetto
+            //salvo nella variabile url e in project images l'immagine rinominata con lo slug del progetto
+            $img_url = Storage::putFileAs('project_images', $data['image'], "{$data['slug']}.$extension"); 
 
             $project->image = $img_url;
             
         }
     
         $project->update($data);
+
+        //se ho inviato uno o dei valori sincronizzo 
+        if (Arr::exists($data, 'technologies')) $project->technologies()->sync($data['technologies']);
+
+        //Se non ho inviato valori ma il project ne aveva in precedenza, vuol dire che devo eliminare valore perchè li ho tolti tutti
+        elseif (!Arr::exists($data, 'technologies') && $project->has('technologies')) $project->technologies()->detach();
 
     
         return to_route('admin.projects.show', $project->id)->with('type', 'success')->with('message', 'Progetto modificato con successo');
@@ -190,8 +217,11 @@ class ProjectController extends Controller
 
     public function drop(Project $project){
 
+        if($project->has('technologies')) $project->technologies()->detach();
+        if($project->image) Storage::delete($project->image);
+
         $project->forceDelete();
 
-        return to_route('admin.projects.trash')->with('type', 'warning')->with('message', 'Progetto eliminato con successo');
+        return to_route('admin.projects.trash')->with('type', 'danger')->with('message', 'Progetto eliminato con successo');
     }
 }

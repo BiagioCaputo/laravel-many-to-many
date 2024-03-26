@@ -78,7 +78,22 @@
                 <img src="{{old('image', $project->image) ? $project->printImage() : 'https://marcolanci.it/boolean/assets/placeholder.png'}}" class="img-fluid" alt="img-post" id="preview">
             </div>
         </div>
-        <div class="col-12 d-flex justify-content-end">
+        <div class="d-flex justify-content-between mb-4">
+            <div class="col-10">
+                @foreach ($technologies as $technology)
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" name="technologies[]" 
+                        type="checkbox" id="tech-{{$technology->id}}" value="{{$technology->id}}"
+                        @if(in_array($technology->id, old('technologies', $previous_technologies ?? []))) checked @endif>
+                        <label class="form-check-label" for="tech-{{$technology->id}}">{{$technology->label}}</label>
+                    </div>
+                @endforeach
+                    @error('technologies')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                    @enderror
+            </div>
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="is_completed" name="is_completed" value="1"
                 @if (old('is_completed', $project->is_completed)) checked @endif>
