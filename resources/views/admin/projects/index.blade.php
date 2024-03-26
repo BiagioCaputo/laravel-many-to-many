@@ -14,14 +14,20 @@
       <form action="{{route('admin.projects.index')}}" method="GET">
         <div class="input-group">
           <select class="form-select" name="is_completed_filter">
-            <option value="">Tutti</option>
+            <option value="">Completati e non</option>
             <option value="completed" @if($is_completed_filter === 'completed') selected @endif>Completati</option>
             <option value="uncompleted" @if($is_completed_filter === 'uncompleted') selected @endif>In corso</option>
           </select>
           <select class="form-select" name="type_filter">
-            <option value="">Tutti</option>
+            <option value="">Tipi</option>
             @foreach($types as $type)
             <option value={{ $type->id }} @if($type_filter == $type->id) selected @endif>{{ $type->label }}</option>
+            @endforeach
+          </select>
+          <select class="form-select" name="technology_filter">
+            <option value="">Tecnologie</option>
+            @foreach($technologies as $technology)
+            <option value={{ $technology->id }} @if($technology_filter == $technology->id) selected @endif>{{ $technology->label }}</option>
             @endforeach
           </select>
           <button class="btn btn-outline-secondary">Filtra</button>
@@ -89,7 +95,7 @@
               </tr>
             @empty
               <tr>
-                <td colspan="8">
+                <td colspan="9">
                     <h2 class="text-center">Nessun progetto realizzato</h2>
                 </td>
               </tr> 

@@ -24,24 +24,21 @@ class ProjectController extends Controller
         //salvo i filtri in delle variabili
         $is_completed_filter = $request->query('is_completed_filter');
         $type_filter = $request->query('type_filter');
+        $technology_filter = $request->query('technology_filter');
 
-        $query = Project::orderByDesc('updated_at')->orderByDesc('created_at');
 
-
-        if($is_completed_filter){
-            $value = $is_completed_filter === 'completed';
-            $query->whereIsCompleted($value);
-        }
-
-        if($type_filter){
-            $query->whereTypeId($type_filter);
-        }
-
-        $projects = $query->paginate(10)->withQueryString();
+        $projects = Project::completedFilter($is_completed_filter)
+            ->typeFilter($type_filter)
+            ->technologyFilter($technology_filter)
+            ->orderByDesc('updated_at')
+            ->orderByDesc('created_at')
+            ->paginate(10)
+            ->withQueryString();
 
         $types = Type::select('label', 'id')->get();
+        $technologies = Technology::select('id','label')->get();
 
-        return view('admin.projects.index', compact('projects','type_filter','is_completed_filter', 'types'));
+        return view('admin.projects.index', compact('projects','type_filter','is_completed_filter', 'technology_filter', 'types', 'technologies'));
     }
 
     /**

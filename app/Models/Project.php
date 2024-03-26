@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 
 class Project extends Model
 {
@@ -39,8 +40,36 @@ class Project extends Model
         return $this->belongsTo(Type::class);
     }
 
+    //Più progetti possono avere più tecnologie
     public function technologies()
     {
         return $this->belongstoMany(Technology::class);
     }
+    
+    //Query scope per is_completed
+    public function scopeCompletedFilter(Builder $query, $status)
+    {
+        if(!$status) return $query;
+        $value = $status === 'completed';
+        return $query->whereIsCompleted($value);
+    }
+
+    //Query scope per il Tipo
+    public function scopeTypeFilter(Builder $query, $type_id)
+    {
+        if(!$type_id) return $query;
+        return $query->whereTypeId($type_id);
+    }
+
+    //Query scope per la Tecnologia
+    public function scopeTechnologyFilter(Builder $query, $technology_id)
+    {
+        if(!$technology_id) return $query;
+        return $query->whereHas('technologies', function ($query) use($technology_id) {
+            $query->where('technologies.id', $technology_id);
+        });
+    }
+
+    
+
 }
