@@ -22,6 +22,6 @@ class DatabaseSeeder extends Seeder
 
         $this->call(TypeSeeder::class);
 
-        \App\Models\Project::factory(15)->create();
+        \App\Models\Project::factory(5)->create();
     }
 }
