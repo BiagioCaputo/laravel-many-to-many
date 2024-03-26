@@ -26,8 +26,20 @@
                 <img src="{{ $project->printImage() }}" alt="{{$project->title}}" class="me-2 float-start">
             @endif
             <p>{{$project->description}}</p>
-            <strong>Creato il:</strong> {{ $project->getFormattedDate('created_at')}}
-            <strong>Creato il:</strong> {{ $project->getFormattedDate('updated_at')}}
+            <div class="d-flex justify-content-between">
+                <div>
+                    <span class="me-2"><strong>Creato il:</strong> {{ $project->getFormattedDate('created_at')}}</span>
+                    <span><strong>Creato il:</strong> {{ $project->getFormattedDate('updated_at')}}</span>
+                </div>
+                <div class="d-flex gap-2">
+                    @forelse($project->technologies as $technology)
+                    <span class="badge text-bg-{{$technology->color}}">{{$technology->label}}</span>
+                    @empty
+                       -
+                    @endforelse 
+                </div>
+            </div>
+            
         </div>
         <hr>      
     </div>

@@ -40,6 +40,7 @@
                 <th scope="col">Title</th>
                 <th scope="col">Slug</th>
                 <th scope="col">Tipo</th>
+                <th scope="col">Tecnologia</th>
                 <th scope="col">Creato il</th>
                 <th scope="col">Ultima modifica</th>
                 <th scope="col">Completato</th>
@@ -64,6 +65,12 @@
                         -
                     @endif
                 </td>
+                <td>
+                    @forelse($project->technologies as $technology)
+                    <span class="badge text-bg-{{$technology->color}}">{{$technology->label}}</span>
+                    @empty
+                       -
+                    @endforelse 
                 </td>
                 <td>{{ $project->getFormattedDate('created_at')}}</td>
                 <td>{{ $project->getFormattedDate('updated_at')}}</td>
