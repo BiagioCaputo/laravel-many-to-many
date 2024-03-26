@@ -5,6 +5,7 @@ use App\Http\Controllers\Guest\HomeController as GuestHomeController;
 use App\Http\Controllers\Admin\ProjectController as AdminProjectController;
 use App\Http\Controllers\Guest\ProjectController as GuestProjectController;
 use App\Http\Controllers\Admin\TypeController;
+use App\Http\Controllers\Admin\TechnologyController;
 
 
 
@@ -54,6 +55,9 @@ Route::prefix('/admin')->name('admin.')->middleware('auth')->group(function(){
 
     //Rotte resource Admin/Types
     Route::resource('/types', TypeController::class);
+
+    //Rotte resource Admin/Technologies
+    Route::resource('/technologies', TechnologyController::class);
 });
  
 
